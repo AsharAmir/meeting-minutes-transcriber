@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Upload and Real-Time Transcription</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Audio Upload and Real-Time Transcription</h1>
+        <form action="/" method="POST" enctype="multipart/form-data">
+            <input type="file" name="audio_file" accept="audio/*" required>
+            <button type="submit">Upload and Transcribe</button>
+        </form>
+        <div class="realtime">
+            <h2>Real-Time Transcription</h2>
+            <div id="realtime_transcript"></div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+
+        // Capture audio using the Web Audio API
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(function(stream) {
+                var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                var source = audioContext.createMediaStreamSource(stream);
+                var processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+                source.connect(processor);
+                processor.connect(audioContext.destination);
+
+                processor.onaudioprocess = function(e) {
+                    var audioData = e.inputBuffer.getChannelData(0);
+                    // Send audio data to Flask server
+                    socket.emit('audio_chunk', audioData);
+                };
+            })
+            .catch(function(err) {
+                console.error('Error capturing audio:', err);
+            });
+
+        // Receive transcription results
+        socket.on('transcription_result', function(result) {
+            var transcriptDiv = document.getElementById('realtime_transcript');
+            transcriptDiv.innerText += result;
+        });
+    </script>
+</body>
+</html>
