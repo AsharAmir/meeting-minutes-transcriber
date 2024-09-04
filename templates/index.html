@@ -3,49 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Upload and Real-Time Transcription</title>
+    <title>Audio Upload and Transcription</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>Audio Upload and Real-Time Transcription</h1>
-        <form action="/" method="POST" enctype="multipart/form-data">
-            <input type="file" name="audio_file" accept="audio/*" required>
-            <button type="submit">Upload and Transcribe</button>
+        <h1>Audio Upload and Transcription</h1>
+        <button id="recordBtn">Start Recording</button>
+        <button id="stopBtn" disabled>Stop Recording</button>
+        <form id="uploadForm" action="/" method="POST" enctype="multipart/form-data" style="display: none;">
+            <input type="file" name="audio_file" id="audioFile" accept="audio/*" required hidden>
+            <button type="submit" id="uploadBtn">Upload and Transcribe</button>
         </form>
-        <div class="realtime">
-            <h2>Real-Time Transcription</h2>
-            <div id="realtime_transcript"></div>
-        </div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+
     <script>
-        var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob;
+        const recordBtn = document.getElementById('recordBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const uploadForm = document.getElementById('uploadForm');
+        const audioFileInput = document.getElementById('audioFile');
+        const transcriptDiv = document.getElementById('transcript');
 
-        // Capture audio using the Web Audio API
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(function(stream) {
-                var audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                var source = audioContext.createMediaStreamSource(stream);
-                var processor = audioContext.createScriptProcessor(4096, 1, 1);
+        recordBtn.addEventListener('click', () => {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
 
-                source.connect(processor);
-                processor.connect(audioContext.destination);
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
 
-                processor.onaudioprocess = function(e) {
-                    var audioData = e.inputBuffer.getChannelData(0);
-                    // Send audio data to Flask server
-                    socket.emit('audio_chunk', audioData);
-                };
-            })
-            .catch(function(err) {
-                console.error('Error capturing audio:', err);
-            });
+                    mediaRecorder.onstop = () => {
+                        audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                        const file = new File([audioBlob], 'recording.mp3', { type: 'audio/mp3' });
 
-        // Receive transcription results
-        socket.on('transcription_result', function(result) {
-            var transcriptDiv = document.getElementById('realtime_transcript');
-            transcriptDiv.innerText += result;
+                        // Show upload form and add the recorded audio to the input
+                        uploadForm.style.display = 'block';
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        audioFileInput.files = dataTransfer.files;
+
+                        // Clear chunks for next recording
+                        audioChunks = [];
+                    };
+
+                    recordBtn.disabled = true;
+                    stopBtn.disabled = false;
+                })
+                .catch(err => {
+                    console.error('Error accessing audio stream:', err);
+                });
+        });
+
+        stopBtn.addEventListener('click', () => {
+            mediaRecorder.stop();
+            recordBtn.disabled = false;
+            stopBtn.disabled = true;
         });
     </script>
 </body>

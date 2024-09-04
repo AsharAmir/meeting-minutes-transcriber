@@ -1,105 +1,56 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
-from flask_socketio import SocketIO, emit
+from flask import Flask, render_template, request, redirect, url_for
+from flask_socketio import SocketIO
 import os
 import requests
 import time
+from rev_ai import apiclient 
 import eventlet
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 socketio = SocketIO(app)
 
-REV_AI_API_KEY = 'your_rev_ai_api_key'  # Replace with your actual API key
+REV_AI_API_KEY=os.getenv('REV_API_KEY')
+client = apiclient.RevAiAPIClient(REV_AI_API_KEY)
 
-def upload_to_rev(file_path):
-    headers = {
-        'Authorization': f'Bearer {REV_AI_API_KEY}'
-    }
-    files = {'media': open(file_path, 'rb')}
-    response = requests.post('https://api.rev.ai/speechtotext/v1/jobs', headers=headers, files=files)
-    
-    # Debugging output
-    print("Upload Response Status Code:", response.status_code)
-    print("Upload Response Content:", response.content)
 
-    if response.status_code == 201:  # HTTP status code for created
-        return response.json().get('id')
+def transcribe_audio(file_path):
+    # Submit the MP3 file for transcription
+    job = client.submit_job_local_file(file_path)
+
+    # Check the job status
+    job_details = client.get_job_details(job.id)
+    while job_details.status == "in_progress":
+        time.sleep(60)  # Poll every 60 seconds
+        job_details = client.get_job_details(job.id)
+        print("Job status:", job_details.status)
+
+    # Once the job is complete, retrieve the transcript
+    if job_details.status == "transcribed":
+        transcript_text = client.get_transcript_text(job.id)
+        return transcript_text
     else:
-        print("Error uploading file:", response.content)
+        print(f"Job failed or was cancelled. Status: {job_details.status}")
         return None
-
-def get_job_status(job_id):
-    headers = {'Authorization': f'Bearer {REV_AI_API_KEY}'}
-    response = requests.get(f'https://api.rev.ai/speechtotext/v1/jobs/{job_id}', headers=headers)
-    
-    if response.status_code == 200:
-        return response.json().get('status')
-    else:
-        print("Error fetching job status:", response.content)
-        return None
-
-def get_transcript(job_id):
-    headers = {'Authorization': f'Bearer {REV_AI_API_KEY}'}
-    response = requests.get(f'https://api.rev.ai/speechtotext/v1/jobs/{job_id}/transcript', headers=headers)
-    
-    if response.status_code == 200:
-        return response.json()
-    else:
-        print("Error fetching transcript:", response.content)
-        return None
-
-def poll_for_transcript(job_id, max_retries=10, delay=5):
-    for _ in range(max_retries):
-        status = get_job_status(job_id)
-        if status == 'transcribed':
-            return get_transcript(job_id)
-        elif status in ['failed', 'cancelled']:
-            print(f"Job failed or was cancelled. Status: {status}")
-            return None
-        time.sleep(delay)  # Wait before retrying
-    print("Exceeded maximum retries")
-    return None
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        file = request.files['audio_file']
+        file = request.files.get('audio_file')
         if file:
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+            # Save the uploaded audio file
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], 'recording.mp3')
             file.save(file_path)
-            job_id = upload_to_rev(file_path)
-            if job_id:
-                return redirect(url_for('transcription', job_id=job_id))
+            
+            # Transcribe the audio file
+            transcript_text = transcribe_audio(file_path)
+            
+            if transcript_text:
+                # Redirect to a page displaying the transcription result
+                return render_template('transcription.html', transcript=transcript_text)
             else:
-                return "Error uploading file to Rev.ai", 500
+                return "Error: Transcription failed or job was cancelled", 500
     return render_template('index.html')
-
-@app.route('/transcription/<job_id>')
-def transcription(job_id):
-    transcript = poll_for_transcript(job_id)
-    if transcript:
-        return render_template('transcription.html', transcript=transcript)
-    else:
-        return "Error fetching transcription or job failed", 500
-
-# Commented out for now
-# async def realtime_speech_to_text(audio_gen):
-#     async with websockets.connect(
-#             'wss://api.rev.ai/speechtotext/v1/stream',
-#             extra_headers={"Authorization": f"Bearer {REV_AI_API_KEY}"}
-#         ) as websocket:
-#         
-#         async for audio_chunk in audio_gen:
-#             await websocket.send(audio_chunk)
-# 
-#         while True:
-#             result = await websocket.recv()
-#             socketio.emit('transcription_result', result)
-
-# Commented out for now
-# @socketio.on('audio_chunk')
-# def handle_audio_chunk(audio_chunk):
-#     asyncio.run(realtime_speech_to_text(audio_chunk))
 
 if __name__ == '__main__':
     eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 5000)), app)
