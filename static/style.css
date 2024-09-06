@@ -1,51 +1,86 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #121212;
-    color: #E0E0E0;
     margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.navbar {
+    width: 100%;
+    background-color: #333;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+.navbar h1 {
+    margin: 0;
+    color: #fff;
+}
+
+.nav-links {
+    list-style: none;
     padding: 0;
+    margin: 0;
+    display: flex;
+    margin-right: 40px;
 }
 
-.container {
-    max-width: 800px;
-    margin: 0 auto;
+.nav-links li {
+    margin-left: 20px
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #fff;
+    font-size: 16px;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: #1e90ff;
+}
+
+.content {
+    text-align: center;
     padding: 20px;
+    margin-top: 70px; /* To avoid content hiding under the fixed navbar */
+    flex-grow: 1;
 }
 
-h1 {
-    color: #ffffff;
+.btn {
+    padding: 10px 20px;
+    margin: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
 }
 
-form {
-    margin-bottom: 20px;
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:disabled {
+    background-color: #555;
+}
+
+.btn-secondary {
+    background-color: #28a745;
+    color: white;
 }
 
 input[type="file"] {
-    display: block;
-    margin-bottom: 10px;
-}
-
-button {
-    background-color: #6200ea;
-    border: none;
-    color: #ffffff;
-    padding: 10px 20px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin: 4px 2px;
-    cursor: pointer;
-}
-
-.realtime {
-    margin-top: 20px;
-}
-
-#realtime_transcript {
-    background-color: #1e1e1e;
-    border: 1px solid #333333;
-    padding: 10px;
-    height: 300px;
-    overflow-y: scroll;
+    display: none;
 }

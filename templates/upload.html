@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Transcription Service</title>
+    <title>Upload to Transcribe</title>
     <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
@@ -15,8 +15,12 @@
         </ul>
     </nav>
     <div class="content">
-        <h2>Welcome to the Audio Transcription Service</h2>
-        <p>Select an option from the navbar to get started.</p>
+        <h2>Upload MP3 for Transcription</h2>
+        <form id="uploadForm" action="/" method="POST" enctype="multipart/form-data">
+            <label for="audioFile" class="btn btn-primary">Choose MP3 File</label>
+            <input type="file" name="audio_file" id="audioFile" accept="audio/*" required hidden>
+            <button type="submit" id="uploadBtn" class="btn btn-secondary">Upload and Transcribe</button>
+        </form>
     </div>
 </body>
 </html>

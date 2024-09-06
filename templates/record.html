@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Upload and Transcription</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Audio Upload and Transcription</h1>
+        <button id="recordBtn">Start Recording</button>
+        <button id="stopBtn" disabled>Stop Recording</button>
+        <form id="uploadForm" action="/" method="POST" enctype="multipart/form-data" style="display: none;">
+            <input type="file" name="audio_file" id="audioFile" accept="audio/*" required hidden>
+            <button type="submit" id="uploadBtn">Upload and Transcribe</button>
+        </form>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioBlob;
+        const recordBtn = document.getElementById('recordBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const uploadForm = document.getElementById('uploadForm');
+        const audioFileInput = document.getElementById('audioFile');
+        const transcriptDiv = document.getElementById('transcript');
+
+        recordBtn.addEventListener('click', () => {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
+
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                        const file = new File([audioBlob], 'recording.mp3', { type: 'audio/mp3' });
+
+                        // Show upload form and add the recorded audio to the input
+                        uploadForm.style.display = 'block';
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        audioFileInput.files = dataTransfer.files;
+
+                        // Clear chunks for next recording
+                        audioChunks = [];
+                    };
+
+                    recordBtn.disabled = true;
+                    stopBtn.disabled = false;
+                })
+                .catch(err => {
+                    console.error('Error accessing audio stream:', err);
+                });
+        });
+
+        stopBtn.addEventListener('click', () => {
+            mediaRecorder.stop();
+            recordBtn.disabled = false;
+            stopBtn.disabled = true;
+        });
+    </script>
+</body>
+</html>

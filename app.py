@@ -5,12 +5,22 @@ import requests
 import time
 from rev_ai import apiclient 
 import eventlet
+from dotenv import load_dotenv
+
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 socketio = SocketIO(app)
 
-REV_AI_API_KEY=os.getenv('REV_API_KEY')
+load_dotenv()
+
+# Retrieve the API key from the environment variables
+REV_AI_API_KEY = os.getenv('REV_AI_API_KEY')
+
+if not REV_AI_API_KEY:
+    raise ValueError('API key is not set in environment variables')
+
+# Initialize the RevAiAPIClient with the retrieved API key
 client = apiclient.RevAiAPIClient(REV_AI_API_KEY)
 
 
@@ -51,6 +61,16 @@ def index():
             else:
                 return "Error: Transcription failed or job was cancelled", 500
     return render_template('index.html')
+
+# Route for the upload page
+@app.route('/upload')
+def upload():
+    return render_template('upload.html')
+
+# Route for the live transcription page
+@app.route('/record')
+def record():
+    return render_template('record.html')
 
 if __name__ == '__main__':
     eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 5000)), app)
