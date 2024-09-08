@@ -7,10 +7,28 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <nav class="navbar">
+        <h1>Audio Transcription</h1>
+        <div class="hamburger" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('upload') }}">Upload to Transcribe</a></li>
+            <li><a href="{{ url_for('record') }}">Live Transcription</a></li>
+        </ul>
+    </nav>    
     <div class="container">
         <h1>Audio Upload and Transcription</h1>
-        <button id="recordBtn">Start Recording</button>
-        <button id="stopBtn" disabled>Stop Recording</button>
+        <div class="record-circle">
+            <span class="timer" id="timer">00:00:00</span>
+            <button id="recordBtn" 
+                    data-audio-url="{{ url_for('static', filename='assets/audio.png') }}"
+                    data-stop-url="{{ url_for('static', filename='assets/stop.png') }}">
+                <img src="{{ url_for('static', filename='assets/audio.png') }}" alt="Record" id="recordIcon" onerror="console.error('Image failed to load')">
+            </button>
+        </div>
         <form id="uploadForm" action="/" method="POST" enctype="multipart/form-data" style="display: none;">
             <input type="file" name="audio_file" id="audioFile" accept="audio/*" required hidden>
             <button type="submit" id="uploadBtn">Upload and Transcribe</button>
@@ -18,51 +36,79 @@
     </div>
 
     <script>
+
+        function toggleMenu() {
+        const navLinks = document.querySelector('.nav-links');
+        navLinks.classList.toggle('active');
+        }
+
+
         let mediaRecorder;
         let audioChunks = [];
         let audioBlob;
+        let timerInterval;
+        let seconds = 0;
         const recordBtn = document.getElementById('recordBtn');
-        const stopBtn = document.getElementById('stopBtn');
+        const recordIcon = document.getElementById('recordIcon');
         const uploadForm = document.getElementById('uploadForm');
         const audioFileInput = document.getElementById('audioFile');
-        const transcriptDiv = document.getElementById('transcript');
+        const timerDisplay = document.getElementById('timer');
+        const container = document.querySelector('.container');
+
+        // Get URLs for audio and stop images from data attributes
+        const audioUrl = recordBtn.getAttribute('data-audio-url');
+        const stopUrl = recordBtn.getAttribute('data-stop-url');
+
+        function updateTimer() {
+            seconds++;
+            let hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
+            let mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+            let secs = String(seconds % 60).padStart(2, '0');
+            timerDisplay.textContent = `${hrs}:${mins}:${secs}`;
+        }
 
         recordBtn.addEventListener('click', () => {
-            navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(stream => {
-                    mediaRecorder = new MediaRecorder(stream);
-                    mediaRecorder.start();
+            if (recordBtn.classList.contains('recording')) {
+                mediaRecorder.stop();
+                clearInterval(timerInterval);
+                timerDisplay.textContent = '00:00:00';
+                seconds = 0;
+                recordIcon.src = audioUrl; // Change icon back to microphone
+                recordBtn.classList.remove('recording');
+                container.classList.remove('recording');
+                recordBtn.disabled = false;
+            } else {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        mediaRecorder = new MediaRecorder(stream);
+                        mediaRecorder.start();
 
-                    mediaRecorder.ondataavailable = event => {
-                        audioChunks.push(event.data);
-                    };
+                        mediaRecorder.ondataavailable = event => {
+                            audioChunks.push(event.data);
+                        };
 
-                    mediaRecorder.onstop = () => {
-                        audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                        const file = new File([audioBlob], 'recording.mp3', { type: 'audio/mp3' });
+                        mediaRecorder.onstop = () => {
+                            audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                            const file = new File([audioBlob], 'recording.mp3', { type: 'audio/mp3' });
 
-                        // Show upload form and add the recorded audio to the input
-                        uploadForm.style.display = 'block';
-                        const dataTransfer = new DataTransfer();
-                        dataTransfer.items.add(file);
-                        audioFileInput.files = dataTransfer.files;
+                            uploadForm.style.display = 'block';
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(file);
+                            audioFileInput.files = dataTransfer.files;
 
-                        // Clear chunks for next recording
-                        audioChunks = [];
-                    };
+                            audioChunks = [];
+                        };
 
-                    recordBtn.disabled = true;
-                    stopBtn.disabled = false;
-                })
-                .catch(err => {
-                    console.error('Error accessing audio stream:', err);
-                });
-        });
-
-        stopBtn.addEventListener('click', () => {
-            mediaRecorder.stop();
-            recordBtn.disabled = false;
-            stopBtn.disabled = true;
+                        recordBtn.disabled = false;
+                        timerInterval = setInterval(updateTimer, 1000);
+                        recordIcon.src = stopUrl; // Change icon to stop when recording
+                        recordBtn.classList.add('recording');
+                        container.classList.add('recording');
+                    })
+                    .catch(err => {
+                        console.error('Error accessing audio stream:', err);
+                    });
+            }
         });
     </script>
 </body>

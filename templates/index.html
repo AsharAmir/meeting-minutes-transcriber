@@ -9,14 +9,26 @@
 <body>
     <nav class="navbar">
         <h1>Audio Transcription</h1>
+        <div class="hamburger" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
         <ul class="nav-links">
             <li><a href="{{ url_for('upload') }}">Upload to Transcribe</a></li>
             <li><a href="{{ url_for('record') }}">Live Transcription</a></li>
         </ul>
-    </nav>
+    </nav>    
     <div class="content">
         <h2>Welcome to the Audio Transcription Service</h2>
         <p>Select an option from the navbar to get started.</p>
     </div>
+    <script>
+        function toggleMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+    </script>
+        
 </body>
 </html>

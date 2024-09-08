@@ -6,7 +6,9 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    padding-top: 60px; /* Adjust to match navbar height */
 }
 
 .navbar {
@@ -26,6 +28,7 @@ body {
 .navbar h1 {
     margin: 0;
     color: #fff;
+    font-size: 1.5rem;
 }
 
 .nav-links {
@@ -33,28 +36,40 @@ body {
     padding: 0;
     margin: 0;
     display: flex;
-    margin-right: 40px;
-}
-
-.nav-links li {
-    margin-left: 20px
+    gap: 20px;
 }
 
 .nav-links a {
     text-decoration: none;
     color: #fff;
-    font-size: 16px;
+    font-size: 1rem;
     transition: color 0.3s;
+    margin-right: 40px;
 }
 
 .nav-links a:hover {
     color: #1e90ff;
 }
 
+/* Hamburger menu styles */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+.hamburger span {
+    height: 3px;
+    width: 25px;
+    background: #fff;
+    margin: 4px 40px;
+    transition: all 0.3s;
+}
+
 .content {
     text-align: center;
     padding: 20px;
-    margin-top: 70px; /* To avoid content hiding under the fixed navbar */
+    margin-top: 60px; /* To avoid content hiding under the fixed navbar */
     flex-grow: 1;
 }
 
@@ -64,7 +79,7 @@ body {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 1rem;
 }
 
 .btn-primary {
@@ -83,4 +98,164 @@ body {
 
 input[type="file"] {
     display: none;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 60px); /* Adjust based on navbar height */
+    padding: 20px;
+    text-align: center;
+    transition: border-color 0.3s ease;
+}
+
+.container h1 {
+    margin: 0 0 20px; /* Adjusted margin to move heading up */
+    width: fit-content;
+    font-size: 2rem; /* Responsive heading size */
+}
+
+.record-circle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: #007bff;
+    position: relative;
+    margin: 20px 0; /* Add margin for spacing */
+}
+
+.record-circle button {
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.record-circle img {
+    width: 50px;
+    height: 50px;
+}
+
+.timer {
+    position: absolute;
+    top: -30px;
+    font-size: 1.125rem;
+    color: #e0e0e0;
+}
+
+#uploadForm {
+    margin-top: 20px;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#uploadBtn {
+    background-color: #333; /* Dark background color */
+    color: #fff; /* White text */
+    border: none; /* No border */
+    padding: 10px 20px; /* Padding for size */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    font-size: 14px; /* Font size */
+    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+}
+
+#uploadBtn:hover {
+    background-color: #555; /* Slightly lighter dark color on hover */
+}
+
+@keyframes recordPulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+#recordBtn.recording {
+    animation: recordPulse 1s infinite;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .hamburger {
+        display: flex; /* Show hamburger on small screens */
+    }
+
+    .nav-links {
+        position: absolute;
+        right: 0;
+        top: 60px;
+        background-color: #333;
+        flex-direction: column;
+        width: 100%;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-in-out;
+    }
+
+    .nav-links.active {
+        max-height: 300px; /* Adjust this value to ensure all links are shown */
+    }
+
+    .navbar h1 {
+        font-size: 1.25rem;
+    }
+
+    .nav-links {
+        display: none; /* Hide nav-links on small screens initially */
+    }
+
+    .nav-links.active {
+        display: flex; /* Show nav-links when hamburger is clicked */
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .container {
+        padding: 10px;
+        height: calc(100vh - 60px); /* Adjust for smaller screens */
+    }
+
+    .container h1 {
+        font-size: 1.75rem;
+    }
+
+    .record-circle {
+        width: 80px;
+        height: 80px;
+    }
+
+    .record-circle img {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar h1 {
+        font-size: 1rem;
+    }
+
+    .container h1 {
+        font-size: 1.5rem;
+    }
+
+    .record-circle {
+        width: 70px;
+        height: 70px;
+    }
+
+    .record-circle img {
+        width: 35px;
+        height: 35px;
+    }
 }

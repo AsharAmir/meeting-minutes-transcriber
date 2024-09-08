@@ -9,18 +9,43 @@
 <body>
     <nav class="navbar">
         <h1>Audio Transcription</h1>
+        <div class="hamburger" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
         <ul class="nav-links">
             <li><a href="{{ url_for('upload') }}">Upload to Transcribe</a></li>
             <li><a href="{{ url_for('record') }}">Live Transcription</a></li>
         </ul>
     </nav>
+    
     <div class="content">
         <h2>Upload MP3 for Transcription</h2>
         <form id="uploadForm" action="/" method="POST" enctype="multipart/form-data">
             <label for="audioFile" class="btn btn-primary">Choose MP3 File</label>
             <input type="file" name="audio_file" id="audioFile" accept="audio/*" required hidden>
-            <button type="submit" id="uploadBtn" class="btn btn-secondary">Upload and Transcribe</button>
+            <button type="submit" id="uploadBtn" class="btn btn-secondary" disabled>Upload and Transcribe</button>
         </form>
     </div>
+
+    <script>
+        function toggleMenu() {
+            const navLinks = document.querySelector('.nav-links');
+            navLinks.classList.toggle('active');
+        }
+
+        // Disable upload button until a file is selected
+        const audioFileInput = document.getElementById('audioFile');
+        const uploadBtn = document.getElementById('uploadBtn');
+
+        audioFileInput.addEventListener('change', function() {
+            if (audioFileInput.files.length > 0) {
+                uploadBtn.disabled = false; // Enable button if file is selected
+            } else {
+                uploadBtn.disabled = true; // Keep button disabled if no file is selected
+            }
+        });
+    </script>
 </body>
 </html>
