@@ -9,13 +9,22 @@
 <body>
     <div class="container">
         <h1>Transcription Results</h1>
-        <pre>{{ transcript | safe }}</pre>
+        <div class="transcription-text">
+            <p>{{ transcript | safe }}</p>
+        </div>
+
+        {% if summary %}
+        <div class="summary-text">
+            <h2>Summary</h2>
+            <p>{{ summary }}</p>
+        </div>
+        {% endif %}
 
         <form action="{{ url_for('summarize') }}" method="POST">
             <input type="hidden" name="transcript" value="{{ transcript }}">
             <button type="submit" class="btn btn-primary">Summarize</button>
         </form>
-        <a href="/">Go Back</a>
+        <a href="/" class="btn btn-secondary">Go Back</a>
     </div>
 </body>
 </html>

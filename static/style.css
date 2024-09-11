@@ -147,6 +147,55 @@ input[type="file"] {
     color: #e0e0e0;
 }
 
+.transcription-text {
+    background-color: #2e2e2e;
+    padding: 20px;
+    border-radius: 8px;
+    max-height: 400px;
+    overflow-y: auto; /* Allow scrolling if the content is too long */
+    margin-bottom: 20px;
+    width: 80%;
+    text-align: left;
+    line-height: 1.5;
+    color: #e0e0e0;
+    font-size: 1rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    word-wrap: break-word; /* Ensure long words wrap to the next line */
+    white-space: pre-wrap; /* Preserve whitespace and line breaks */
+}
+
+.summary-text {
+    background-color: #2e2e2e; /* Match the transcription background */
+    padding: 20px;
+    border-radius: 8px;
+    max-height: 300px; /* Slightly smaller max height for summary */
+    overflow-y: auto; /* Allow scrolling if the content is too long */
+    margin-bottom: 20px;
+    width: 80%;
+    text-align: left;
+    line-height: 1.5;
+    color: #e0e0e0;
+    font-size: 1rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Consistent shadow */
+    word-wrap: break-word; /* Ensure long words wrap to the next line */
+    white-space: pre-wrap; /* Preserve whitespace and line breaks */
+    margin-top: 10px; /* Add some spacing above the summary */
+}
+
+.summary-text h2 {
+    margin: 0 0 10px; /* Add a small margin below the heading */
+    font-size: 1.5rem;
+    color: #ffffff; /* Make the heading stand out */
+}
+
+.summary-text p {
+    margin: 0;
+}
+
+.transcription-text p {
+    margin: 0;
+}
+
 #uploadForm {
     margin-top: 20px;
 }
