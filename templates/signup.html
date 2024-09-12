@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='logsign.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Meeting Minutes Transcriber</h1>
+        </header>
+
+        <!-- Flash Messages -->
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <ul class="flashes">
+                        {% for category, message in messages %}
+                            <li class="{{ category }}">{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <div class="form-container">
+            <h2>Sign Up</h2>
+            <form action="{{ url_for('signup') }}" method="POST" id="signupForm">
+                <input type="email" name="email" placeholder="Email" required 
+                       pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" 
+                       title="Please enter a valid email address.">
+                
+                <input type="password" name="password" placeholder="Password" required 
+                       minlength="8" 
+                       pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" 
+                       title="Password must be at least 8 characters long, and include at least one number, one uppercase letter, and one lowercase letter.">
+                
+                <button type="submit">Sign Up</button>
+            </form>
+            <div id="error-message" style="color: red; margin-top: 10px;"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('signupForm').addEventListener('submit', function(event) {
+            var password = document.querySelector('input[name="password"]').value;
+            var email = document.querySelector('input[name="email"]').value;
+
+            // Check if password meets criteria
+            var passwordPattern = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+            if (!passwordPattern.test(password)) {
+                event.preventDefault();
+                document.getElementById('error-message').textContent = 
+                    'Password must be at least 8 characters long, and include at least one number, one uppercase letter, and one lowercase letter.';
+                return;
+            }
+
+            // Check if email is valid
+            var emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+            if (!emailPattern.test(email)) {
+                event.preventDefault();
+                document.getElementById('error-message').textContent = 
+                    'Please enter a valid email address.';
+                return;
+            }
+        });
+    </script>
+</body>
+</html>

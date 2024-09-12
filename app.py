@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_socketio import SocketIO
 import os
 import requests
@@ -7,8 +7,14 @@ from rev_ai import apiclient
 import eventlet
 from dotenv import load_dotenv
 import google.generativeai as genai
+import firebase_admin
+from firebase_admin import credentials, auth
+import firebase
+import pyrebase
+from functools import wraps
 
 load_dotenv()
+
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 generation_config = {
@@ -33,6 +39,89 @@ REV_AI_API_KEY = os.getenv('REV_AI_API_KEY')
 
 if not REV_AI_API_KEY:
     raise ValueError('API key is not set in environment variables')
+
+
+
+
+# Initialize Firebase Admin SDK
+cred = credentials.Certificate("meeting-minutes-transcriber-firebase-adminsdk-kuvlm-2155da08d4.json")
+firebase_admin.initialize_app(cred)
+
+# Firebase Client SDK configuration
+firebase_config = {
+    "apiKey": os.getenv("FIREBASE_API_KEY"),
+    "authDomain": os.getenv("FIREBASE_AUTH_DOMAIN"),
+    "projectId": os.getenv("FIREBASE_PROJECT_ID"),
+    "storageBucket": os.getenv("FIREBASE_STORAGE_BUCKET"),
+    "messagingSenderId": os.getenv("FIREBASE_MESSAGING_SENDER_ID"),
+    "appId": os.getenv("FIREBASE_APP_ID"),
+    "measurementId": os.getenv("FIREBASE_MEASUREMENT_ID"),
+    "databaseURL": ""
+}
+firebase = pyrebase.initialize_app(firebase_config)
+auth_client = firebase.auth()
+
+
+def login_required(f):
+    """Decorator to protect routes that require login."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user' not in session:
+            flash('Please log in to access this page.', 'warning')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        try:
+            # Create user with Firebase Client SDK
+            user = auth_client.create_user_with_email_and_password(email, password)
+            flash('User created successfully! Please sign in.', 'success')
+            return redirect(url_for('login'))  # Redirect to signin page
+        except Exception as e:
+            error_message = str(e)
+            # Extract and format the error message
+            if "EMAIL_EXISTS" in error_message:
+                flash('This email is already registered.', 'danger')
+            elif "WEAK_PASSWORD" in error_message:
+                flash('Password should be at least 6 characters long.', 'danger')
+            else:
+                flash(f'Error creating user: {error_message}', 'danger')
+            return redirect(url_for('signup'))
+
+    return render_template('signup.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        try:
+            # Sign in user with Firebase Client SDK
+            user = auth_client.sign_in_with_email_and_password(email, password)
+            session['user'] = user['localId']
+            flash('Logged in successfully!', 'success')
+            return redirect(url_for('index'))  # Redirect to index page
+        except Exception as e:
+            flash(f'Login failed: {str(e)}', 'danger')
+            return redirect(url_for('login'))
+
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    flash('Logged out successfully!', 'success')
+    return redirect(url_for('login'))
+
+
 
 # Initialize the RevAiAPIClient with the retrieved API key
 client = apiclient.RevAiAPIClient(REV_AI_API_KEY)
@@ -75,6 +164,7 @@ def split_text(text, max_length):
     return chunks
 
 @app.route('/', methods=['GET', 'POST'])
+@login_required
 def index():
     if request.method == 'POST':
         file = request.files.get('audio_file')
