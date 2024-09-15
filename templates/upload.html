@@ -24,6 +24,13 @@
     <div class="content">
         <h2>Upload MP3 for Transcription</h2>
         <form id="uploadForm" action="/" method="POST" enctype="multipart/form-data">
+            <label for="language">Select a language:</label>
+            <!-- <select name="language" id="language" class="language">
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="pt">Portuguese</option>
+            </select> -->
+            <br><br>
             <label for="audioFile" class="btn btn-primary">Choose MP3 File</label>
             <input type="file" name="audio_file" id="audioFile" accept="audio/*" required hidden>
             <button type="submit" id="uploadBtn" class="btn btn-secondary" disabled>Upload and Transcribe</button>

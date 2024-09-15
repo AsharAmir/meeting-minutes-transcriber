@@ -22,6 +22,7 @@
 
         <form action="{{ url_for('summarize') }}" method="POST">
             <input type="hidden" name="transcript" value="{{ transcript }}">
+
             <button type="submit" class="btn btn-primary">Summarize</button>
         </form>
         <a href="/" class="btn btn-secondary">Go Back</a>

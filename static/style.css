@@ -308,3 +308,36 @@ button:disabled {
         height: 35px;
     }
 }
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    color: #e0e0e0;
+}
+
+.language {
+    width: 200px;
+    padding: 10px;
+    border: 1px solid #555;
+    border-radius: 5px;
+    background-color: #2e2e2e;
+    color: #e0e0e0;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    appearance: none; /* Removes default styling */
+    background: #2e2e2e url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCA1MCAyMCIgdmlld0JveD0iMCAwIDUwIDIwIj4KPHBhdGggZD0iTTI1IDIwbC00MCA0MEwtMCAyMEwyNSA4TDI1IDE2IiBmaWxsPSIjRTBFMEU5Ii8+Cjwvc3ZnPjw+'); /* Custom dropdown arrow */
+    background-repeat: no-repeat;
+    background-position: right 10px center; /* Position the custom arrow */
+}
+
+.language:focus {
+    border-color: #1e90ff;
+    outline: none;
+    box-shadow: 0 0 8px rgba(30, 144, 255, 0.5); /* Reduced shadow size */
+}
+
+/* Dropdown Options */
+.language option {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
