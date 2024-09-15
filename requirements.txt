@@ -1,0 +1,10 @@
+Flask
+Flask-SocketIO
+requests
+rev_ai
+python-dotenv
+google-generativeai
+firebase-admin
+pyrebase4
+eventlet
+firebase
